@@ -1,5 +1,5 @@
 # Enable debugging
-#Set-PSDebug -Trace 1
+Set-PSDebug -Trace 1
 
 param (
     [ValidatePattern('^[c-zC-Z]$')]
@@ -42,14 +42,12 @@ if (! $myWindowsPrincipal.IsInRole($adminRole))
     exit
 }
 
-
-
 # Start the transcript and prepare the window
 Start-Transcript -Path "$ScratchDisk\tiny11.log" 
 
-$Host.UI.RawUI.WindowTitle = "Tiny11 image creator"
+$Host.UI.RawUI.WindowTitle = "Tiny11 image creator for Windows 11 24H2"
 Clear-Host
-Write-Host "Welcome to the tiny11 image creator! Release: 05-06-24"
+Write-Host "Welcome to the Tiny11 image creator for Windows 11 24H2! Release: 2024-11-19"
 
 $hostArchitecture = $Env:PROCESSOR_ARCHITECTURE
 New-Item -ItemType Directory -Force -Path "$ScratchDisk\tiny11\sources" | Out-Null
@@ -146,7 +144,6 @@ $packagesToRemove = $packages | Where-Object {
 foreach ($package in $packagesToRemove) {
     & 'dism' '/English' "/image:$($ScratchDisk)\scratchdir" '/Remove-ProvisionedAppxPackage' "/PackageName:$package"
 }
-
 
 Write-Host "Removing Edge:"
 Remove-Item -Path "$ScratchDisk\scratchdir\Program Files (x86)\Microsoft\Edge" -Recurse -Force | Out-Null
@@ -379,7 +376,7 @@ reg unload HKLM\zDRIVERS | Out-Null
 reg unload HKLM\zDEFAULT | Out-Null
 reg unload HKLM\zNTUSER | Out-Null
 reg unload HKLM\zSCHEMA | Out-Null
-reg unload HKLM\zSOFTWARE
+reg unload HKLM\zSOFTWARE | Out-Null
 reg unload HKLM\zSYSTEM | Out-Null
 Write-Host "Cleaning up image..."
 Repair-WindowsImage -Path $ScratchDisk\scratchdir -StartComponentCleanup -ResetBase
@@ -389,7 +386,7 @@ Write-Host "Unmounting image..."
 Dismount-WindowsImage -Path $ScratchDisk\scratchdir -Save
 Write-Host "Exporting image..."
 # Compressiontype Recovery is not supported with PShell https://learn.microsoft.com/en-us/powershell/module/dism/export-windowsimage?view=windowsserver2022-ps#-compressiontype
-Export-WindowsImage -SourceImagePath $ScratchDisk\tiny11\sources\install.wim -SourceIndex $index -DestinationImagePath $ScratchDisk\tiny11\sources\install2.wim -CompressionType Fast
+Export-WindowsImage -SourceImagePath $ScratchDisk\tiny11\sources\install.wim -SourceIndex $index -DestinationImagePath $ScratchDisk\tiny11\sources\install2.wim -CompressionType Max
 Remove-Item -Path "$ScratchDisk\tiny11\sources\install.wim" -Force | Out-Null
 Rename-Item -Path "$ScratchDisk\tiny11\sources\install2.wim" -NewName "install.wim" | Out-Null
 Write-Host "Windows image completed. Continuing with boot.wim."
@@ -427,7 +424,7 @@ reg unload HKLM\zDEFAULT | Out-Null
 reg unload HKLM\zNTUSER | Out-Null
 reg unload HKLM\zSCHEMA | Out-Null
 $regKey.Close()
-reg unload HKLM\zSOFTWARE
+reg unload HKLM\zSOFTWARE | Out-Null
 reg unload HKLM\zSYSTEM | Out-Null
 Write-Host "Unmounting image..."
 Dismount-WindowsImage -Path $ScratchDisk\scratchdir -Save
@@ -464,7 +461,7 @@ if ([System.IO.Directory]::Exists($ADKDepTools)) {
     $OSCDIMG = $localOSCDIMGPath
 }
 
-& "$OSCDIMG" '-m' '-o' '-u2' '-udfver102' "-bootdata:2#p0,e,b$ScratchDisk\tiny11\boot\etfsboot.com#pEF,e,b$ScratchDisk\tiny11\efi\microsoft\boot\efisys.bin" "$ScratchDisk\tiny11" "$PSScriptRoot\tiny11.iso"
+& "$OSCDIMG" '-m' '-o' '-u2' '-udfver200' "-bootdata:2#p0,e,b$ScratchDisk\tiny11\boot\etfsboot.com#pEF,e,b$ScratchDisk\tiny11\efi\microsoft\boot\efisys.bin" "$ScratchDisk\tiny11" "$PSScriptRoot\tiny11.iso"
 
 # Finishing up
 Write-Host "Creation completed! Press any key to exit the script..."
