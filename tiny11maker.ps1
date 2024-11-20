@@ -65,8 +65,8 @@ if ((Test-Path "$($DriveLetter)\sources\boot.wim") -eq $false -or (Test-Path "$(
         Write-Host 'Converting install.esd to install.wim. This may take a while...'
         & 'DISM' /English /Export-Image /SourceImageFile:"$($DriveLetter)\sources\install.esd" /SourceIndex:$index /DestinationImageFile:"$($ScratchDisk)\tiny11\sources\install.wim" /Compress:max /CheckIntegrity
     } else {
-        Write-Host "Can't find Windows OS Installation files in the specified Drive Letter.."
-        Write-Host "Please enter the correct DVD Drive Letter.."
+        Write-Host "Can't find Windows OS Installation files in the specified Drive Letter..."
+        Write-Host "Please enter the correct DVD Drive Letter..."
         exit
     }
 }
@@ -169,12 +169,12 @@ foreach ($packagePattern in $packagePatterns) {
         # Extract the package identity
         $packageIdentity = ($package -split "\s+")[0]
 
-        Write-Host "Removing $packageIdentity..."
+        Write-Host "Removing package: $packageIdentity"
         & 'DISM' /English /Image:"$($ScratchDisk)\scratchdir" /Remove-Package /PackageName:$packageIdentity 
     }
 }
 
-Write-Host "Removing Edge:"
+Write-Host "Removing Edge..."
 Remove-Item -Path "$($ScratchDisk)\scratchdir\Program Files (x86)\Microsoft\Edge" -Recurse -Force | Out-Null
 Remove-Item -Path "$($ScratchDisk)\scratchdir\Program Files (x86)\Microsoft\EdgeUpdate" -Recurse -Force | Out-Null
 Remove-Item -Path "$($ScratchDisk)\scratchdir\Program Files (x86)\Microsoft\EdgeCore" -Recurse -Force | Out-Null
@@ -205,7 +205,7 @@ if ($architecture -eq 'amd64') {
 & 'icacls' "$($ScratchDisk)\scratchdir\Windows\System32\Microsoft-Edge-Webview" '/grant' "$($adminGroup.Value):(F)" '/T' '/C' > $null 2>&1
 Remove-Item -Path "$($ScratchDisk)\scratchdir\Windows\System32\Microsoft-Edge-Webview" -Recurse -Force | Out-Null
 
-Write-Host "Removing OneDrive:"
+Write-Host "Removing OneDrive..."
 & 'takeown' '/f' "$($ScratchDisk)\scratchdir\Windows\System32\OneDriveSetup.exe" > $null 2>&1
 & 'icacls' "$($ScratchDisk)\scratchdir\Windows\System32\OneDriveSetup.exe" '/grant' "$($adminGroup.Value):(F)" '/T' '/C' > $null 2>&1
 Remove-Item -Path "$($ScratchDisk)\scratchdir\Windows\System32\OneDriveSetup.exe" -Force | Out-Null
@@ -218,7 +218,7 @@ Write-Host "Loading registry..."
 & 'reg' 'load' 'HKLM\zSOFTWARE' '$($ScratchDisk)\scratchdir\Windows\System32\config\SOFTWARE' > $null 2>&1
 & 'reg' 'load' 'HKLM\zSYSTEM' '$($ScratchDisk)\scratchdir\Windows\System32\config\SYSTEM' > $null 2>&1
 
-Write-Host "Bypassing system requirements(on the system image):"
+Write-Host "Bypassing system requirements(on the system image)..."
 & 'reg' 'add' 'HKLM\zDEFAULT\Control Panel\UnsupportedHardwareNotificationCache' '/v' 'SV1' '/t' 'REG_DWORD' '/d' '0' '/f' > $null 2>&1
 & 'reg' 'add' 'HKLM\zDEFAULT\Control Panel\UnsupportedHardwareNotificationCache' '/v' 'SV2' '/t' 'REG_DWORD' '/d' '0' '/f' > $null 2>&1
 & 'reg' 'add' 'HKLM\zNTUSER\Control Panel\UnsupportedHardwareNotificationCache' '/v' 'SV1' '/t' 'REG_DWORD' '/d' '0' '/f' > $null 2>&1
@@ -229,7 +229,7 @@ Write-Host "Bypassing system requirements(on the system image):"
 & 'reg' 'add' 'HKLM\zSYSTEM\Setup\LabConfig' '/v' 'BypassStorageCheck' '/t' 'REG_DWORD' '/d' '1' '/f' > $null 2>&1
 & 'reg' 'add' 'HKLM\zSYSTEM\Setup\LabConfig' '/v' 'BypassTPMCheck' '/t' 'REG_DWORD' '/d' '1' '/f' > $null 2>&1
 & 'reg' 'add' 'HKLM\zSYSTEM\Setup\MoSetup' '/v' 'AllowUpgradesWithUnsupportedTPMOrCPU' '/t' 'REG_DWORD' '/d' '1' '/f' > $null 2>&1
-Write-Host "Disabling Sponsored Apps:"
+Write-Host "Disabling Sponsored Apps..."
 & 'reg' 'add' 'HKLM\zNTUSER\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' '/v' 'OemPreInstalledAppsEnabled' '/t' 'REG_DWORD' '/d' '0' '/f' > $null 2>&1
 & 'reg' 'add' 'HKLM\zNTUSER\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' '/v' 'PreInstalledAppsEnabled' '/t' 'REG_DWORD' '/d' '0' '/f' > $null 2>&1
 & 'reg' 'add' 'HKLM\zNTUSER\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' '/v' 'SilentInstalledAppsEnabled' '/t' 'REG_DWORD' '/d' '0' '/f' > $null 2>&1
@@ -259,17 +259,17 @@ Write-Host "Disabling Sponsored Apps:"
 & 'reg' 'delete' 'HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager\SuggestedApps' '/f' > $null 2>&1
 & 'reg' 'add' 'HKLM\zSOFTWARE\Policies\Microsoft\Windows\CloudContent' '/v' 'DisableConsumerAccountStateContent' '/t' 'REG_DWORD' '/d' '1' '/f' > $null 2>&1
 & 'reg' 'add' 'HKLM\zSOFTWARE\Policies\Microsoft\Windows\CloudContent' '/v' 'DisableCloudOptimizedContent' '/t' 'REG_DWORD' '/d' '1' '/f' > $null 2>&1
-Write-Host "Enabling Local Accounts on OOBE:"
+Write-Host "Enabling Local Accounts on OOBE..."
 & 'reg' 'add' 'HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\OOBE' '/v' 'BypassNRO' '/t' 'REG_DWORD' '/d' '1' '/f' > $null 2>&1
 Copy-Item -Path "$PSScriptRoot\autounattend.xml" -Destination "$($ScratchDisk)\scratchdir\Windows\System32\Sysprep\autounattend.xml" -Force | Out-Null
-Write-Host "Disabling Reserved Storage:"
+Write-Host "Disabling Reserved Storage..."
 & 'reg' 'add' 'HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\ReserveManager' '/v' 'ShippedWithReserves' '/t' 'REG_DWORD' '/d' '0' '/f' > $null 2>&1
-Write-Host "Disabling BitLocker Device Encryption"
+Write-Host "Disabling BitLocker Device Encryption..."
 & 'reg' 'add' 'HKLM\zSYSTEM\ControlSet001\Control\BitLocker' '/v' 'PreventDeviceEncryption' '/t' 'REG_DWORD' '/d' '1' '/f' > $null 2>&1
 Write-Host "Disabling Chat icon:"
 & 'reg' 'add' 'HKLM\zSOFTWARE\Policies\Microsoft\Windows\Windows Chat' '/v' 'ChatIcon' '/t' 'REG_DWORD' '/d' '3' '/f' > $null 2>&1
 & 'reg' 'add' 'HKLM\zNTUSER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced' '/v' 'TaskbarMn' '/t' 'REG_DWORD' '/d' '0' '/f' > $null 2>&1
-Write-Host "Disabling Telemetry:"
+Write-Host "Disabling Telemetry..."
 & 'reg' 'add' 'HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo' '/v' 'Enabled' '/t' 'REG_DWORD' '/d' '0' '/f' > $null 2>&1
 & 'reg' 'add' 'HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\Privacy' '/v' 'TailoredExperiencesWithDiagnosticDataEnabled' '/t' 'REG_DWORD' '/d' '0' '/f' > $null 2>&1
 & 'reg' 'add' 'HKLM\zNTUSER\Software\Microsoft\Speech_OneCore\Settings\OnlineSpeechPrivacy' '/v' 'HasAccepted' '/t' 'REG_DWORD' '/d' '0' '/f' > $null 2>&1
@@ -282,17 +282,17 @@ Write-Host "Disabling Telemetry:"
 & 'reg' 'add' 'HKLM\zSYSTEM\ControlSet001\Services\dmwappushservice' '/v' 'Start' '/t' 'REG_DWORD' '/d' '4' '/f' > $null 2>&1
 & 'reg' 'add' 'HKLM\zSOFTWARE\Policies\Microsoft\Windows\Windows Chat' '/v' 'ChatIcon' '/t' 'REG_DWORD' '/d' '3' '/f' > $null 2>&1
 & 'reg' 'add' 'HKLM\zNTUSER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced' '/v' 'TaskbarMn' '/t' 'REG_DWORD' '/d' '0' '/f' > $null 2>&1
-Write-Host "Disabling OneDrive folder backup"
+Write-Host "Disabling OneDrive folder backup..."
 & 'reg' 'add' "HKLM\zSOFTWARE\Policies\Microsoft\Windows\OneDrive" '/v' 'DisableFileSyncNGSC' '/t' 'REG_DWORD' '/d' '1' '/f' > $null 2>&1
-Write-Host "Removing Edge related registries"
+Write-Host "Removing Edge related registries..."
 & 'reg' 'delete' "HKEY_LOCAL_MACHINE\zSOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Microsoft Edge" '/f' > $null 2>&1
 & 'reg' 'delete' "HKEY_LOCAL_MACHINE\zSOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Microsoft Edge Update" '/f' > $null 2>&1
-Write-Host "Disabling bing in Start Menu:"
+Write-Host "Disabling bing in Start Menu..."
 & 'reg' 'add' 'HKLM\zNTUSER\Software\Policies\Microsoft\Windows\Explorer' > $null 2>&1
 & 'reg' 'add' 'HKLM\zNTUSER\Software\Policies\Microsoft\Windows\Explorer' '/v' 'ShowRunAsDifferentUserInStart' '/t' 'REG_DWORD' '/d' '1' '/f' > $null 2>&1
 & 'reg' 'add' 'HKLM\zNTUSER\Software\Policies\Microsoft\Windows\Explorer' '/v' 'DisableSearchBoxSuggestions' '/t' 'REG_DWORD' '/d' '1' '/f' > $null 2>&1
 ## Prevents installation or DevHome and Outlook
-Write-Host "Prevents installation or DevHome and Outlook:"
+Write-Host "Prevents installation or DevHome and Outlook..."
 & 'reg' 'add' 'HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Orchestrator\UScheduler\OutlookUpdate' '/v' 'workCompleted' '/t' 'REG_DWORD' '/d' '1' '/f' > $null 2>&1
 & 'reg' 'add' 'HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Orchestrator\UScheduler\DevHomeUpdate' '/v' 'workCompleted' '/t' 'REG_DWORD' '/d' '1' '/f' > $null 2>&1
 & 'reg' 'delete' 'HKLM\zSOFTWARE\Microsoft\WindowsUpdate\Orchestrator\UScheduler_Oobe\OutlookUpdate' '/f' > $null 2>&1
@@ -374,6 +374,7 @@ function Enable-Privilege {
  $type[0]::EnablePrivilege($processHandle, $Privilege, $Disable)
 }
 
+Write-Host "Ownership of the Scheduled Tasks registry:"
 Enable-Privilege SeTakeOwnershipPrivilege
 
 try {
@@ -402,18 +403,18 @@ try {
 Write-Host "Registry key permissions updated."
 
 
-Write-Host 'Deleting Application Compatibility Appraiser'
+Write-Host 'Deleting Application Compatibility Appraiser...'
 & 'reg' 'delete' "HKEY_LOCAL_MACHINE\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tasks\{0600DD45-FAF2-4131-A006-0B17509B9F78}" '/f' > $null 2>&1
-Write-Host 'Deleting Customer Experience Improvement Program'
+Write-Host 'Deleting Customer Experience Improvement Program...'
 & 'reg' 'delete' "HKEY_LOCAL_MACHINE\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tasks\{4738DE7A-BCC1-4E2D-B1B0-CADB044BFA81}" '/f' > $null 2>&1
 & 'reg' 'delete' "HKEY_LOCAL_MACHINE\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tasks\{6FAC31FA-4A85-4E64-BFD5-2154FF4594B3}" '/f' > $null 2>&1
 & 'reg' 'delete' "HKEY_LOCAL_MACHINE\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tasks\{FC931F16-B50A-472E-B061-B6F79A71EF59}" '/f' > $null 2>&1
-Write-Host 'Deleting Program Data Updater'
+Write-Host 'Deleting Program Data Updater...'
 & 'reg' 'delete' "HKEY_LOCAL_MACHINE\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tasks\{0671EB05-7D95-4153-A32B-1426B9FE61DB}" '/f' > $null 2>&1
-Write-Host 'Deleting autochk proxy'
+Write-Host 'Deleting autochk proxy...'
 & 'reg' 'delete' "HKEY_LOCAL_MACHINE\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tasks\{87BF85F4-2CE1-4160-96EA-52F554AA28A2}" '/f' > $null 2>&1
 & 'reg' 'delete' "HKEY_LOCAL_MACHINE\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tasks\{8A9C643C-3D74-4099-B6BD-9C6D170898B1}" '/f' > $null 2>&1
-Write-Host 'Deleting QueueReporting'
+Write-Host 'Deleting QueueReporting...'
 & 'reg' 'delete' "HKEY_LOCAL_MACHINE\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tasks\{E3176A65-4E44-4ED3-AA73-3283660ACB9C}" '/f' > $null 2>&1
 
 Write-Host "Tweaking complete!"
@@ -448,7 +449,7 @@ Write-Host "Loading registry..."
 & 'reg' 'load' 'HKLM\zDEFAULT' '$($ScratchDisk)\scratchdir\Windows\System32\config\default' > $null 2>&1
 & 'reg' 'load' 'HKLM\zNTUSER' '$($ScratchDisk)\scratchdir\Users\Default\ntuser.dat' > $null 2>&1
 & 'reg' 'load' 'HKLM\zSYSTEM' '$($ScratchDisk)\scratchdir\Windows\System32\config\SYSTEM' > $null 2>&1
-Write-Host "Bypassing system requirements(on the setup image):"
+Write-Host "Bypassing system requirements(on the setup image)..."
 & 'reg' 'add' 'HKLM\zDEFAULT\Control Panel\UnsupportedHardwareNotificationCache' '/v' 'SV1' '/t' 'REG_DWORD' '/d' '0' '/f' > $null 2>&1
 & 'reg' 'add' 'HKLM\zDEFAULT\Control Panel\UnsupportedHardwareNotificationCache' '/v' 'SV2' '/t' 'REG_DWORD' '/d' '0' '/f' > $null 2>&1
 & 'reg' 'add' 'HKLM\zNTUSER\Control Panel\UnsupportedHardwareNotificationCache' '/v' 'SV1' '/t' 'REG_DWORD' '/d' '0' '/f' > $null 2>&1
@@ -476,10 +477,10 @@ Remove-Item "$($ScratchDisk)\tiny11\sources\install.wim" > $null 2>&1
 
 Write-Host "The tiny11 image is now completed. Proceeding with the making of the ISO..."
 Write-Host "Copying unattended file for bypassing MS account on OOBE..."
-Copy-Item -Path "$PSScriptRoot\autounattend.xml" -Destination "$($ScratchDisk)\tiny11\autounattend.xml" -Force | Out-Null
+Copy-Item -Path "$($PSScriptRoot)\autounattend.xml" -Destination "$($ScratchDisk)\tiny11\autounattend.xml" -Force | Out-Null
 Write-Host "Creating ISO image..."
 $ADKDepTools = "C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\$hostarchitecture\Oscdimg"
-$localOSCDIMGPath = "$PSScriptRoot\oscdimg.exe"
+$localOSCDIMGPath = "$($PSScriptRoot)\oscdimg.exe"
 
 if ([System.IO.Directory]::Exists($ADKDepTools)) {
     Write-Host "Will be using oscdimg.exe from system ADK."
@@ -506,7 +507,7 @@ if ([System.IO.Directory]::Exists($ADKDepTools)) {
     $OSCDIMG = $localOSCDIMGPath
 }
 
-& "$OSCDIMG" '-m' '-o' '-u2' '-udfver200' "-bootdata:2#p0,e,b$($ScratchDisk)\tiny11\boot\etfsboot.com#pEF,e,b$($ScratchDisk)\tiny11\efi\microsoft\boot\efisys.bin" "$($ScratchDisk)\tiny11" "$($PSScriptRoot)\tiny11.iso"
+& "$OSCDIMG" '-m' '-o' '-u2' '-udfver102' "-bootdata:2#p0,e,b$($ScratchDisk)\tiny11\boot\etfsboot.com#pEF,e,b$($ScratchDisk)\tiny11\efi\microsoft\boot\efisys.bin" "$($ScratchDisk)\tiny11" "$($PSScriptRoot)\tiny11.iso"
 
 # Finishing up
 Write-Host "Creation completed! Press any key to exit the script..."
