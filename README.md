@@ -27,16 +27,14 @@ Also included is an unattended answer file, which is used to bypass the Microsof
 
 1. Either download or create a Windows 11 ISO with the *media creation tool*. Both can be obtained at (<https://www.microsoft.com/en-us/software-download/windows11>).
 
-2. Mount the downloaded **/** created ISO image on Windows Explorer with your preferred tool.
+2. Mount the downloaded / created ISO image on Windows Explorer with your preferred tool.
 
 3. Right click on `LAUNCH_TINY11.bat`, then select `Run as administrator`.
 
-4. When requested, type the **drive letter** where the image is mounted.
-<br>
+4. When requested, type the **drive letter** where the image is mounted.<br>
 Note: Only type the **letter**, no colon (`:`).
 
-5. When requested, type the **index number** of the edition (Home, Pro, etc.) you want to use for your image.
-<br>
+5. When requested, type the **index number** of the edition (Home, Pro, etc.) you want to use for your image.<br>
 Note: Only type the **number**, no colon (`:`).
 
 6. Wait until the script finishes.
@@ -71,8 +69,7 @@ Note: Only type the **number**, no colon (`:`).
 
 ## Known issues:
 
-1. Although Edge is removed, there are some remnants in the Settings. But the app in itself is deleted. You can install any browser using WinGet (after you update the app using Microsoft Store). If you want Edge, Copilot and Web Search back, simply install Edge using Winget: `winget install edge`.
-<br>
+1. Although Edge is removed, there are some remnants in the Settings. But the app in itself is deleted. You can install any browser using WinGet (after you update the app using Microsoft Store). If you want Edge, Copilot and Web Search back, simply install Edge using Winget: `winget install edge`.<br>
 Note: You might have to update Winget before being able to install any apps, using Microsoft Store.
 
 2. Outlook and Dev Home might reappear after some time.
