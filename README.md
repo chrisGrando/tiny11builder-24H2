@@ -39,7 +39,7 @@ Note: Only type the **number**, no colon (`:`).
 
 6. Wait until the script finishes.
 
-7. When the image is completed, you will see it in the same folder where the script is located, maned as `tiny11.iso`.
+7. When the image is completed, you will see it in the same folder where the script is located, named as `tiny11.iso`.
 
 ## What is removed:
 
