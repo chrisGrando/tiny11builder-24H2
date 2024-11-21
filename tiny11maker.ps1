@@ -56,8 +56,10 @@ do {
     }
 } while ($DriveLetter -notmatch '^[c-zC-Z]:$')
 
+$askForImageIndex = $true
 if ((Test-Path "$($DriveLetter)\sources\boot.wim") -eq $false -or (Test-Path "$($DriveLetter)\sources\install.wim") -eq $false) {
     if ((Test-Path "$($DriveLetter)\sources\install.esd") -eq $true) {
+		$askForImageIndex = $false
         Write-Host "Found install.esd!"
         & 'DISM' /English /Get-WimInfo /WimFile:"$($DriveLetter)\sources\install.esd"
         $index = Read-Host "Please enter the image index"
@@ -80,6 +82,12 @@ Start-Sleep -Seconds 2
 Clear-Host
 
 $index = 1
+if ($askForImageIndex) {
+	Write-Host "Getting image information:"
+	& 'DISM' /English /Get-WimInfo /WimFile:"$($ScratchDisk)\tiny11\sources\install.wim"
+	$index = Read-Host "Please enter the image index"
+}
+
 Write-Host "Mounting Windows image. This may take a while."
 $wimFilePath = "$($ScratchDisk)\tiny11\sources\install.wim"
 & 'takeown' '/f' $wimFilePath 
@@ -266,7 +274,7 @@ Write-Host "Disabling Reserved Storage..."
 & 'reg' 'add' 'HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\ReserveManager' '/v' 'ShippedWithReserves' '/t' 'REG_DWORD' '/d' '0' '/f' > $null 2>&1
 Write-Host "Disabling BitLocker Device Encryption..."
 & 'reg' 'add' 'HKLM\zSYSTEM\ControlSet001\Control\BitLocker' '/v' 'PreventDeviceEncryption' '/t' 'REG_DWORD' '/d' '1' '/f' > $null 2>&1
-Write-Host "Disabling Chat icon:"
+Write-Host "Disabling Chat icon..."
 & 'reg' 'add' 'HKLM\zSOFTWARE\Policies\Microsoft\Windows\Windows Chat' '/v' 'ChatIcon' '/t' 'REG_DWORD' '/d' '3' '/f' > $null 2>&1
 & 'reg' 'add' 'HKLM\zNTUSER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced' '/v' 'TaskbarMn' '/t' 'REG_DWORD' '/d' '0' '/f' > $null 2>&1
 Write-Host "Disabling Telemetry..."
