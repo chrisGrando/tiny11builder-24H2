@@ -42,7 +42,7 @@ Start-Transcript -Path "$($ScratchDisk)\tiny11.log"
 
 $Host.UI.RawUI.WindowTitle = "Tiny11 image creator for Windows 11 24H2"
 Clear-Host
-Write-Host "Welcome to the Tiny11 image creator for Windows 11 24H2! Release: 2024-11-20"
+Write-Host "Welcome to the Tiny11 image creator for Windows 11 24H2! Release: 2024-11-21"
 
 $hostArchitecture = $Env:PROCESSOR_ARCHITECTURE
 New-Item -ItemType Directory -Force -Path "$($ScratchDisk)\tiny11\sources" | Out-Null
@@ -517,13 +517,13 @@ if ([System.IO.Directory]::Exists($ADKDepTools)) {
 
 & "$OSCDIMG" '-m' '-o' '-u2' '-udfver102' "-bootdata:2#p0,e,b$($ScratchDisk)\tiny11\boot\etfsboot.com#pEF,e,b$($ScratchDisk)\tiny11\efi\microsoft\boot\efisys.bin" "$($ScratchDisk)\tiny11" "$($PSScriptRoot)\tiny11.iso"
 
-# Finishing up
-Write-Host "Creation completed! Press any key to exit the script..."
-$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
-
 Write-Host "Performing Cleanup..."
 Remove-Item -Path "$($ScratchDisk)\tiny11" -Recurse -Force | Out-Null
 Remove-Item -Path "$($ScratchDisk)\scratchdir" -Recurse -Force | Out-Null
+
+# Finishing up
+Write-Host "Creation completed! Press any key to exit the script..."
+$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
 
 # Stop the transcript
 Stop-Transcript
