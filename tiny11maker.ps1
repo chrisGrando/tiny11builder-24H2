@@ -59,7 +59,7 @@ do {
 $askForImageIndex = $true
 if ((Test-Path "$($DriveLetter)\sources\boot.wim") -eq $false -or (Test-Path "$($DriveLetter)\sources\install.wim") -eq $false) {
     if ((Test-Path "$($DriveLetter)\sources\install.esd") -eq $true) {
-		$askForImageIndex = $false
+        $askForImageIndex = $false
         Write-Host "Found install.esd!"
         & 'DISM' /English /Get-WimInfo /WimFile:"$($DriveLetter)\sources\install.esd"
         $index = Read-Host "Please enter the image index"
@@ -83,9 +83,9 @@ Clear-Host
 
 $index = 1
 if ($askForImageIndex) {
-	Write-Host "Getting image information:"
-	& 'DISM' /English /Get-WimInfo /WimFile:"$($ScratchDisk)\tiny11\sources\install.wim"
-	$index = Read-Host "Please enter the image index"
+    Write-Host "Getting image information:"
+    & 'DISM' /English /Get-WimInfo /WimFile:"$($ScratchDisk)\tiny11\sources\install.wim"
+    $index = Read-Host "Please enter the image index"
 }
 
 Write-Host "Mounting Windows image. This may take a while."
@@ -96,7 +96,7 @@ try {
     Set-ItemProperty -Path $wimFilePath -Name IsReadOnly -Value $false -ErrorAction Stop
 } catch {
     # This block will catch the error and suppress it.
-	Write-Host ' '
+    Write-Host ' '
 }
 New-Item -ItemType Directory -Force -Path "$($ScratchDisk)\scratchdir" > $null
 & 'DISM' /English /Mount-Image /ImageFile:"$($ScratchDisk)\tiny11\sources\install.wim" /Index:$index /MountDir:"$($ScratchDisk)\scratchdir"
@@ -145,7 +145,7 @@ $packagesToRemove = $packages | Where-Object {
     $packagePrefixes -contains ($packagePrefixes | Where-Object { $packageName -like "$_*" })
 }
 foreach ($package in $packagesToRemove) {
-	Write-Host "Removing application: $package"
+    Write-Host "Removing application: $package"
     & 'DISM' /English /Image:"$($ScratchDisk)\scratchdir" /Remove-ProvisionedAppxPackage /PackageName:"$package"
 }
 
@@ -386,26 +386,26 @@ Write-Host "Ownership of the Scheduled Tasks registry:"
 Enable-Privilege SeTakeOwnershipPrivilege
 
 try {
-	$regKey = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey("zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tasks",[Microsoft.Win32.RegistryKeyPermissionCheck]::ReadWriteSubTree,[System.Security.AccessControl.RegistryRights]::TakeOwnership)
-	$regACL = $regKey.GetAccessControl()
-	$regACL.SetOwner($adminGroup)
-	$regKey.SetAccessControl($regACL)
-	$regKey.Close()
-	Write-Host "Owner changed to Administrators."
+    $regKey = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey("zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tasks",[Microsoft.Win32.RegistryKeyPermissionCheck]::ReadWriteSubTree,[System.Security.AccessControl.RegistryRights]::TakeOwnership)
+    $regACL = $regKey.GetAccessControl()
+    $regACL.SetOwner($adminGroup)
+    $regKey.SetAccessControl($regACL)
+    $regKey.Close()
+    Write-Host "Owner changed to Administrators."
 } catch {
-	Write-Host "Warning: failed to change owner to Administrators."
+    Write-Host "Warning: failed to change owner to Administrators."
 }
 
 try {
-	$regKey = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey("zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tasks",[Microsoft.Win32.RegistryKeyPermissionCheck]::ReadWriteSubTree,[System.Security.AccessControl.RegistryRights]::ChangePermissions)
-	$regACL = $regKey.GetAccessControl()
-	$regRule = New-Object System.Security.AccessControl.RegistryAccessRule ($adminGroup,"FullControl","ContainerInherit","None","Allow")
-	$regACL.SetAccessRule($regRule)
-	$regKey.SetAccessControl($regACL)
-	$regKey.Close()
-	Write-Host "Permissions modified for Administrators group."
+    $regKey = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey("zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tasks",[Microsoft.Win32.RegistryKeyPermissionCheck]::ReadWriteSubTree,[System.Security.AccessControl.RegistryRights]::ChangePermissions)
+    $regACL = $regKey.GetAccessControl()
+    $regRule = New-Object System.Security.AccessControl.RegistryAccessRule ($adminGroup,"FullControl","ContainerInherit","None","Allow")
+    $regACL.SetAccessRule($regRule)
+    $regKey.SetAccessControl($regACL)
+    $regKey.Close()
+    Write-Host "Permissions modified for Administrators group."
 } catch {
-	Write-Host "Warning: failed to modify permissions for Administrators group."
+    Write-Host "Warning: failed to modify permissions for Administrators group."
 }
 
 Write-Host "Registry key permissions updated."
