@@ -3,9 +3,11 @@ A PowerShell script to build a trimmed-down Windows 11 24H2 image.
 
 ## About:
 
-This fork was created to adapt the [original tiny11builder script](https://github.com/ntdevlabs/tiny11builder) for a better support of the version 24H2 of Windows 11, since the one created by ntdevlabs was presenting a poor performance and several errors, even in the [November '24 release](https://github.com/ntdevlabs/tiny11builder/releases/tag/11-17-24), which should have fixed those issues.
+Originally, this fork was created because I wasn't satisfied with the ["November '24 release"](https://github.com/ntdevlabs/tiny11builder/releases/tag/11-17-24) of the original [tiny11builder script by ntdevlabs](https://github.com/ntdevlabs/tiny11builder); which was supposedly compatible with the version 24H2 of Windows 11, but performed terribly.
 
-A complete overhaul of `tiny11maker.ps1` was realized, fixing the problems mentioned previously. A batch script that works as a launcher (`LAUNCH_TINY11.bat`) was also created, to facilitate the process of starting the script.
+Recently, the ["September 2025 Release"](https://github.com/ntdevlabs/tiny11builder/releases/tag/06-09-25) was created, which fixed several of the issues I had with the previous version. However, I fell like there's still room for improvement, and that's why I'll keep maintaining my "alternative version".
+
+A complete overhaul of `tiny11maker.ps1` was realized and a batch script that works as a launcher (`LAUNCH_TINY11.bat`) was created, to facilitate the process of starting the script.
 
 Only version 24H2 of Windows 11 was tested in this fork, I don't know how this script will behave with older versions. Support for **tiny11 core** (`tiny11Coremaker.ps1`) was dropped, since I don't see usefulness in that version.
 
@@ -46,7 +48,7 @@ Note: Only type the **number**, no colon (`:`).
 - Clipchamp
 - News
 - Weather
-- Xbox (although Xbox Identity provider is still here, so it should be possible to be reinstalled with no issues)
+- Xbox
 - GetHelp
 - GetStarted
 - Office Hub
@@ -66,6 +68,9 @@ Note: Only type the **number**, no colon (`:`).
 - Tablet PC Math
 - Edge
 - OneDrive
+- Copilot
+- Outlook
+- Microsoft Teams
 
 ## Known issues:
 
