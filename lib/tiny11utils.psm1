@@ -2,7 +2,7 @@
 
 $modulePath = $PSScriptRoot -replace '\\', '/'
 $moduleName = "tiny11utils"
-$moduleVersion = "2025.09.07"
+$moduleVersion = "2025.11.17"
 $moduleAuthor = "chrisGrando"
 $moduleCompany = "Tiny11Maker"
 $moduleDescription = "Module intended for commom functions of tiny11maker script."
@@ -16,7 +16,7 @@ New-ModuleManifest -Path "$modulePath/$moduleName.psd1" `
 
 #### GLOBAL VARIABLES FIELD ####
 
-New-Variable -Name MODULE_ROOT -Value $modulePath -Option Constant
+New-Variable -Name MODULE_ROOT -Value $modulePath -Scope Script -Option AllScope,Constant
 
 #### FUNCTIONS FIELD ####
 
@@ -28,6 +28,7 @@ function Set-RegistryValue {
         [string]$type,
         [string]$value
     )
+
     try {
         & 'reg' 'add' $path '/v' $name '/t' $type '/d' $value '/f' > $null 2>&1
         Write-Output "Set registry value: $path\$name"
@@ -41,6 +42,7 @@ function Remove-RegistryValue {
     param (
         [string]$path
     )
+
     try {
         & 'reg' 'delete' $path '/f' > $null 2>&1
         Write-Output "Removed registry value: $path"
@@ -78,7 +80,68 @@ function Enable-Privilege {
     $type[0]::EnablePrivilege($processHandle, $Privilege, $Disable)
 }
 
+## Lists all avaliable file system drives in the machine
+function Find-AvaliableDrives {
+    $AllDrives = Get-PSDrive -PSProvider FileSystem
+    return $AllDrives.Root
+}
+
+## Creates a list with the index of avaliable Windows 11 editions
+function Find-AllAvaliableEditions {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$isoDrive
+    )
+
+    $InstallDataPath = "$($isoDrive)sources\install.esd"
+
+    # If install.esd doesn't exists, try install.wim
+    if (-not (Test-Path $InstallDataPath)) {
+        $InstallDataPath = "$($isoDrive)sources\install.win"
+    }
+
+    # If install.win doesn't exists either, then give up
+    if (-not (Test-Path $InstallDataPath)) {
+        Write-Error "Unable to find file `"install.esd`" or `"install.win`""
+        return @("No image index found")
+    }
+
+    $EditionsRaw = (& 'DISM' /English /Get-WimInfo /WimFile:$InstallDataPath) -join "`n"
+    $EditionsArray = $EditionsRaw.Split("`n")
+    $EditionsClean = @()
+    $IndexID = 0
+
+    foreach ($item in $EditionsArray) {
+        if ($item.Contains("Name : ")) {
+            $IndexID += 1
+            $EditionsClean += $("$IndexID - " + $item -replace "Name : ", "")
+        }
+    }
+
+    return $EditionsClean
+}
+
+## Mounts a ISO file image and return it's drive path
+function Mount-WindowsIso {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$filePath
+    )
+
+    try {
+        $isoDisk = Mount-DiskImage -ImagePath $filePath -StorageType ISO -PassThru
+        $isoVolume = Get-Volume -DiskImage $isoDisk
+        return $($isoVolume.DriveLetter + ":\")
+    } catch {
+        Write-Error "Unable to mount file..."
+        return $(Find-AvaliableDrives)[-1]
+    }
+}
+
 #### EXPORT FUNCTIONS FIELD ####
 Export-ModuleMember -Function Set-RegistryValue
 Export-ModuleMember -Function Remove-RegistryValue
 Export-ModuleMember -Function Enable-Privilege
+Export-ModuleMember -Function Find-AvaliableDrives
+Export-ModuleMember -Function Find-AllAvaliableEditions
+Export-ModuleMember -Function Mount-WindowsIso
