@@ -9,13 +9,33 @@ if (-not $ScratchDisk) {
     $ScratchDisk = $PSScriptRoot
 }
 
+Add-Type -assembly System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+
 Import-Module -Name "$($PSScriptRoot -replace '\\', '/')/lib/tiny11utils.psm1"
+Import-Module -Name "$($PSScriptRoot -replace '\\', '/')/lib/tiny11gui.psm1"
+
+# Resources files
+$ResIconPath = "$($PSScriptRoot -replace '\\', '/')/resources/T11M_icon.ico"
+$ResSplashPath = "$($PSScriptRoot -replace '\\', '/')/resources/T11M_splash.png"
+
+# GUI variables
+$AppTitle = "Tiny11 Maker ~ Reforged Edition"
+$AppVersion = "v2025.11.17"
+$Mode = 0
+$Screen = 0
+$Index = 0
+$IsoPath = $null
+$DrivePath = $null
+$MainForm = $null
+$ScreenMountMode = $null
+$ScreenIndexMode = $null
 
 # Check if PowerShell execution is restricted
-if ((Get-ExecutionPolicy) -eq 'Restricted') {
-    Write-Host "Your current PowerShell Execution Policy is set to Restricted, which prevents scripts from running. Do you want to change it to Bypass? (Y/N)"
-    $response = Read-Host
-    if ($response.ToLower() -eq 'y') {
+if (-not ($(Get-ExecutionPolicy).ToString() -eq "Bypass")) {
+    $msg = "Your current PowerShell Execution Policy is set to[br]$(Get-ExecutionPolicy), which prevents scripts from running.[br]Do you want to change it to Bypass?" -replace "\[br\]", "`n"
+    $agree = Invoke-PopupYesOrNo -title "Change execution policy?" -message $msg
+    if ($agree) {
         Set-ExecutionPolicy Bypass -Scope Process -Confirm:$false
     }
     else {
@@ -31,9 +51,9 @@ if ((Get-ExecutionPolicy) -eq 'Restricted') {
 # Check and run the script as admin if required
 $adminSID = New-Object System.Security.Principal.SecurityIdentifier("S-1-5-32-544")
 $adminGroup = $adminSID.Translate([System.Security.Principal.NTAccount])
-$myWindowsID=[System.Security.Principal.WindowsIdentity]::GetCurrent()
-$myWindowsPrincipal=new-object System.Security.Principal.WindowsPrincipal($myWindowsID)
-$adminRole=[System.Security.Principal.WindowsBuiltInRole]::Administrator
+$myWindowsID = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+$myWindowsPrincipal = new-object System.Security.Principal.WindowsPrincipal($myWindowsID)
+$adminRole = [System.Security.Principal.WindowsBuiltInRole]::Administrator
 if (! $myWindowsPrincipal.IsInRole($adminRole)) {
     Write-Host "Restarting Tiny11 image creator as admin in a new window, you can close this one."
     $newProcess = new-object System.Diagnostics.ProcessStartInfo "PowerShell";
@@ -84,7 +104,7 @@ else {
         Invoke-WebRequest -Uri "https://msdl.microsoft.com/download/symbols/oscdimg.exe/3D44737265000/oscdimg.exe" -OutFile $localOSCDIMGPath
 
         if (Test-Path $localOSCDIMGPath) {
-            Write-Host "oscdimg.exe downloaded successfully."
+            Write-Host "`"oscdimg.exe`" downloaded successfully."
         }
         else {
             Write-Error "Failed to download oscdimg.exe. Aborting..."
@@ -96,65 +116,96 @@ else {
         }
     }
     else {
-        Write-Host "oscdimg.exe already exists locally."
+        Write-Host "`"oscdimg.exe`" already exists locally."
     }
 
     $OSCDIMG = $localOSCDIMGPath
 }
 
-$Host.UI.RawUI.WindowTitle = "Tiny11 image creator for Windows 11 24H2"
+$Host.UI.RawUI.WindowTitle = $AppTitle
 Clear-Host
-Write-Host "Welcome to the Tiny11 image creator for Windows 11 24H2! Release: 2025-09-07"
-
+Write-Host "Welcome to the $($AppTitle)! Release: $($AppVersion)"
 New-Item -ItemType Directory -Force -Path "$($ScratchDisk)\tiny11\sources" | Out-Null
-do {
-    $DriveLetter = Read-Host "Please enter the drive letter for the Windows 11 image"
-    if ($DriveLetter -match '^[c-zC-Z]$') {
-        $DriveLetter = $DriveLetter + ":"
-        Write-Output "Drive letter set to $DriveLetter"
-    }
-    else {
-        Write-Output "Invalid drive letter. Please enter a letter between C and Z."
-    }
-} while ($DriveLetter -notmatch '^[c-zC-Z]:$')
 
-$askForImageIndex = $true
-if ((Test-Path "$($DriveLetter)\sources\boot.wim") -eq $false -or (Test-Path "$($DriveLetter)\sources\install.wim") -eq $false) {
-    if ((Test-Path "$($DriveLetter)\sources\install.esd") -eq $true) {
-        $askForImageIndex = $false
-        Write-Host "Found install.esd!"
-        & 'DISM' /English /Get-WimInfo /WimFile:"$($DriveLetter)\sources\install.esd"
-        Write-Host '--------------------------------------------------------'
-        $index = Read-Host "Please enter the image index"
-        Write-Host ' '
-        Write-Host 'Converting install.esd to install.wim. This may take a while...'
-        & 'DISM' /English /Export-Image /SourceImageFile:"$($DriveLetter)\sources\install.esd" /SourceIndex:$index /DestinationImageFile:"$($ScratchDisk)\tiny11\sources\install.wim" /Compress:max /CheckIntegrity
-    }
-    else {
-        Write-Host "Can't find Windows OS Installation files in the specified Drive Letter..."
-        Write-Host "Please enter the correct DVD Drive Letter..."
+# Create main window
+Set-DrivesList $(Find-AvaliableDrives)
+$MainForm = Invoke-MainForm -title $AppTitle -version $AppVersion -icoPath $ResIconPath -splashPath $ResSplashPath
+$MainForm.Show()
+$MainForm.WindowState = [System.Windows.Forms.FormWindowState]::Normal
 
-        Write-Host ' '
-        Write-Host "Press any key to exit the script..."
-        $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
-        exit 1
-    }
+# Create mounting mode screen
+$ScreenMountMode = Invoke-MountMode
+$MainForm.Controls.Add($ScreenMountMode)
+Update-EventLoop $Screen
+
+# User's input values - Part I
+$Screen = Get-ScreenStage
+$Mode = Get-ModeSelect
+$IsoPath = Get-IsoPath
+$DrivePath = Get-SelectedDrive
+
+# Hide the window and erase mount mode screen
+$MainForm.Controls.Remove($ScreenMountMode)
+$MainForm.Visible = $false
+
+# User has closed the window, aborting...
+if ($Screen -eq 0) {
+    exit 0
+}
+
+# User selected ISO file to mount
+if ($Mode -eq 1) {
+    Write-Host "Mounting file $($IsoPath)..."
+    $DrivePath = Mount-WindowsIso $IsoPath
+    Write-Host "Disk mounted at $DrivePath"
+}
+# User selected already mounted drive
+else {
+    Write-Host "Using $DrivePath as Windows setup image path..."
+}
+
+# Get list of avaliable Windows editions inside the ISO
+Set-EditionsList $(Find-AllAvaliableEditions $DrivePath)
+
+# Create image index screen
+$ScreenIndexMode = Invoke-ImageIndexMode
+$MainForm.Controls.Add($ScreenIndexMode)
+$MainForm.Visible = $true
+Update-EventLoop $Screen
+
+# User's input values - Part II
+$Screen = Get-ScreenStage
+$Index = Get-SelectedImageIndex
+
+# User has closed the window, aborting...
+if ($Screen -ne 2) {
+    exit 0
+}
+
+# Close window
+$MainForm.Close()
+
+Write-Host "Using image index: $Index"
+
+# Convert install.esd to install.wim if file is present
+$ConvertedFromESD = $false
+if ((Test-Path "$($DrivePath)sources\install.esd") -eq $true) {
+    $ConvertedFromESD = $true
+    Write-Host 'Converting install.esd to install.wim. This may take a while...'
+    & 'DISM' /English /Export-Image /SourceImageFile:"$($DrivePath)sources\install.esd" /SourceIndex:$Index /DestinationImageFile:"$($ScratchDisk)\tiny11\sources\install.wim" /Compress:max /CheckIntegrity
 }
 
 Write-Host "Copying Windows image..."
-Copy-Item -Path "$($DriveLetter)\*" -Destination "$($ScratchDisk)\tiny11" -Recurse -Force | Out-Null
+Copy-Item -Path "$($DrivePath)*" -Destination "$($ScratchDisk)\tiny11" -Recurse -Force | Out-Null
 Set-ItemProperty -Path "$($ScratchDisk)\tiny11\sources\install.esd" -Name IsReadOnly -Value $false > $null 2>&1
 Remove-Item "$($ScratchDisk)\tiny11\sources\install.esd" > $null 2>&1
 Write-Host "Copy complete!"
 Start-Sleep -Seconds 2
 Clear-Host
 
-$index = 1
-if ($askForImageIndex) {
-    Write-Host "Getting image information:"
-    & 'DISM' /English /Get-WimInfo /WimFile:"$($ScratchDisk)\tiny11\sources\install.wim"
-    Write-Host '--------------------------------------------------------'
-    $index = Read-Host "Please enter the image index"
+# If setup was converted from ESD file, then there's only 1 index avaliable
+if ($ConvertedFromESD) {
+    $Index = 1
 }
 
 Write-Host "Mounting Windows image. This may take a while."
@@ -170,7 +221,7 @@ try {
 }
 
 New-Item -ItemType Directory -Force -Path "$($ScratchDisk)\scratchdir" > $null
-& 'DISM' /English /Mount-Image /ImageFile:"$($ScratchDisk)\tiny11\sources\install.wim" /Index:$index /MountDir:"$($ScratchDisk)\scratchdir"
+& 'DISM' /English /Mount-Image /ImageFile:"$($ScratchDisk)\tiny11\sources\install.wim" /Index:$Index /MountDir:"$($ScratchDisk)\scratchdir"
 
 $imageIntl = & 'DISM' /English /Get-Intl /Image:"$($ScratchDisk)\scratchdir"
 $languageLine = $imageIntl -split '\n' | Where-Object { $_ -match 'Default system UI language : ([a-zA-Z]{2}-[a-zA-Z]{2})' }
@@ -183,7 +234,7 @@ else {
     Write-Host "Default system UI language code not found."
 }
 
-$imageInfo = & 'DISM' /English /Get-WimInfo /WimFile:"$($ScratchDisk)\tiny11\sources\install.wim" /Index:$index
+$imageInfo = & 'DISM' /English /Get-WimInfo /WimFile:"$($ScratchDisk)\tiny11\sources\install.wim" /Index:$Index
 $lines = $imageInfo -split '\r?\n'
 
 foreach ($line in $lines) {
@@ -495,7 +546,7 @@ Write-Host "Unmounting image..."
 & 'DISM' /English /Unmount-Image /MountDir:"$($ScratchDisk)\scratchdir" /Commit
 
 Write-Host "Exporting image..."
-& 'DISM' /English /Export-Image /SourceImageFile:"$($ScratchDisk)\tiny11\sources\install.wim" /SourceIndex:"$index" /DestinationImageFile:"$($ScratchDisk)\tiny11\sources\install2.wim" /Compress:max
+& 'DISM' /English /Export-Image /SourceImageFile:"$($ScratchDisk)\tiny11\sources\install.wim" /SourceIndex:"$Index" /DestinationImageFile:"$($ScratchDisk)\tiny11\sources\install2.wim" /Compress:max
 Remove-Item -Path "$($ScratchDisk)\tiny11\sources\install.wim" -Force | Out-Null
 Rename-Item -Path "$($ScratchDisk)\tiny11\sources\install2.wim" -NewName "install.wim" | Out-Null
 Write-Host "Windows image completed. Continuing with boot.wim."
@@ -551,10 +602,21 @@ Write-Host "Performing Cleanup..."
 Remove-Item -Path "$($ScratchDisk)\tiny11" -Recurse -Force | Out-Null
 Remove-Item -Path "$($ScratchDisk)\scratchdir" -Recurse -Force | Out-Null
 
+# If the used drive was mounted from a ISO file, ask if the user wants to unmount it
+if ($Mode -eq 1) {
+    $unmountDrive = Invoke-PopupYesOrNo -title "Unmount drive?" -message "Would you like to unmount drive $($DrivePath)?"
+
+    if ($unmountDrive) {
+        $driveObj = Get-Volume -Path $DrivePath
+        Dismount-DiskImage -InputObject $driveObj
+    }
+}
+
 # Finishing up
+$msg = "Your custom Tiny11 image was created[br]successfully! The ISO file is located[br]at $($ScratchDisk)\tiny11.iso" -replace "\[br\]", "`n"
 Write-Host ' '
-Write-Host "Creation completed! Press any key to exit the script..."
-$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+Write-Host "Creation completed!"
+Invoke-PopupInfo -title "Done!" -message $msg
 
 # Stop the transcript
 Stop-Transcript
