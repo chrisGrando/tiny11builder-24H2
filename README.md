@@ -1,25 +1,23 @@
-# Tiny11Builder ~ 24H2 Edition
-A PowerShell script to build a trimmed-down Windows 11 24H2 image.
+# Tiny11 Maker ~ Reforged Edition
+(Formerly known as `Tiny11Builder ~ 24H2 Edition`)
 
 ## About:
 
 Originally, this fork was created because I wasn't satisfied with the ["November '24 release"](https://github.com/ntdevlabs/tiny11builder/releases/tag/11-17-24) of the original [tiny11builder script by ntdevlabs](https://github.com/ntdevlabs/tiny11builder); which was supposedly compatible with the version 24H2 of Windows 11, but performed terribly.
 
-Recently, the ["September 2025 Release"](https://github.com/ntdevlabs/tiny11builder/releases/tag/06-09-25) was created, which fixed several of the issues I had with the previous version. However, I fell like there's still room for improvement, and that's why I'll keep maintaining my "alternative version".
+Recently, the ["September 2025 Release"](https://github.com/ntdevlabs/tiny11builder/releases/tag/06-09-25) was created, which fixed several of the issues I had with the previous version, along with adding support for version 25H2. However, I fell like there's still room for improvement, and that's why I'll keep maintaining my "alternative version".
 
-A complete overhaul of `tiny11maker.ps1` was realized and a batch script that works as a launcher (`LAUNCH_TINY11.bat`) was created, to facilitate the process of starting the script.
+A complete overhaul of `tiny11maker.ps1` was realized and a batch script that works as a launcher (`LAUNCH_TINY11.bat`) was created, to facilitate the process of starting the script. Now it also has a GUI for user interaction (command prompt is now used exclusively for log output).
 
-Only version 24H2 of Windows 11 was tested in this fork, I don't know how this script will behave with older versions. Support for **tiny11 core** (`tiny11Coremaker.ps1`) was dropped, since I don't see usefulness in that version.
+Since the release of version `2025.11.17`, this script is designed and tested for editions **24H2** and **25H2** of Windows 11, I don't know how older editions will behave here. Support for **tiny11 core** (`tiny11Coremaker.ps1`) was dropped, since I don't see usefulness in that version.
 
-The script was created to automate the build of a streamlined Windows 11 24H2 image, similar to tiny11. The main goal is to use only Microsoft utilities like DISM, and no utilities from external sources. The only executable included is **oscdimg.exe**, which is provided in the Windows ADK and it is used to create bootable ISO images.
+The script was created to automate the build of a custom streamlined Windows 11 image, similar to tiny11. The main goal is to use only Microsoft utilities like DISM, and no utilities from external sources. The only executable included is **oscdimg.exe**, which is provided in the Windows ADK and it is used to create bootable ISO images.
 
 Also included is an unattended answer file, which is used to bypass the Microsoft Account on OOBE and to deploy the image with the `/compact` flag. It's open-source, **so feel free to add or remove anything you want!** Feedback is also much appreciated.
 
 ## Requirements:
 
-+ A original ISO of *Windows 11* version **24H2** (older releases were *NOT* tested), either downloaded from Microsoft website or created with the *media creation tool*.
-
-+ A tool to mount the original ISO on Windows Explorer. The free version of [DAEMON Tools Lite](https://www.daemon-tools.cc/por/products/dtLite) is already enough.
++ A original ISO of *Windows 11* with either version **24H2** *OR* **25H2** (older releases were *NOT* tested), either downloaded from Microsoft website or created with the *media creation tool*.
 
 + Windows PowerShell version **5.1**, *older* versions are **NOT** supported and *newer* versions were **NOT** tested.
 
@@ -29,17 +27,19 @@ Also included is an unattended answer file, which is used to bypass the Microsof
 
 1. Either download or create a Windows 11 ISO with the *media creation tool*. Both can be obtained at (<https://www.microsoft.com/en-us/software-download/windows11>).
 
-2. Mount the downloaded / created ISO image on Windows Explorer with your preferred tool.
+2. Right click on `LAUNCH_TINY11.bat`, then select `Run as administrator`.
 
-3. Right click on `LAUNCH_TINY11.bat`, then select `Run as administrator`.
+3. Choose between mounting an ISO or using a already mounted drive.
 
-4. When requested, type the **drive letter** where the image is mounted.<br>
-Note: Only type the **letter**, no colon (`:`).
+	3.1. If mounting a ISO, then provide the full path to the file.
+	
+	3.2. If using a already mounted drive, then select the drive letter.
 
-5. When requested, type the **index number** of the edition (Home, Pro, etc.) you want to use for your image.<br>
-Note: Only type the **number**, no colon (`:`).
+4. Select the Windows edition you want to use (Home, Education, Pro, etc.).
 
-6. Wait until the script finishes.
+5. Wait until the script finishes.
+
+6. If you mounted a ISO file, choose to either unmount it or keep it mounted.
 
 7. When the image is completed, you will see it in the same folder where the script is located, named as `tiny11.iso`.
 
