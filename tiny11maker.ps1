@@ -607,8 +607,8 @@ if ($Mode -eq 1) {
     $unmountDrive = Invoke-PopupYesOrNo -title "Unmount drive?" -message "Would you like to unmount drive $($DrivePath)?"
 
     if ($unmountDrive) {
-        $driveObj = Get-Volume -Path $DrivePath
-        Dismount-DiskImage -InputObject $driveObj
+        $auxDrive = $DrivePath.TrimEnd('\') + '\'
+        mountvol $auxDrive /D
     }
 }
 
